@@ -87,6 +87,20 @@ export function logEvent(
   event: CCAEventData,
   importance: AnalyticsEventImportance | undefined
 ) {
+  // Surface errors to console when requested by the integrator.
+  try {
+    const pref = store.config.get().preference as { consoleErrors?: boolean } | undefined;
+    if (pref?.consoleErrors && (event.action === ActionType.error || event.errorMessage)) {
+      // eslint-disable-next-line no-console
+      console.error(`[BaseAccountSDK] ${name}:`, {
+        method: event.method,
+        errorMessage: event.errorMessage,
+       });
+    }
+  } catch (_) {
+    // Best-effort console logging – do not break original flow.
+  }
+
   if (window.ClientAnalytics) {
     window.ClientAnalytics?.logEvent(
       name,
